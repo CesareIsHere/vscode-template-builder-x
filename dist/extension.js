@@ -4121,8 +4121,8 @@ function activate(context) {
         try {
             var activeFolder;
             var outputPath;
+            activeFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
             if (!uri) {
-                activeFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
                 outputPath = await vscode.window.showInputBox({ prompt: 'Destinazione cartelle generate:', value: activeFolder });
             }
             else {
@@ -4130,7 +4130,20 @@ function activate(context) {
             }
             if (!outputPath)
                 return;
-            const yamlFilePath = await vscode.window.showInputBox({ prompt: 'Percorso del template(yaml):', value: activeFolder });
+            var yamlFilePath;
+            // Se è stato impostato un percorso per i template yaml, lo utilizzo
+            var settingsTemplateFolderPath = vscode.workspace.getConfiguration('templateBuilder').get('templateFolderPath');
+            if (settingsTemplateFolderPath) {
+                const templateList = getTemplateList(context, settingsTemplateFolderPath);
+                await vscode.window.showQuickPick(templateList, { placeHolder: 'Seleziona un template' }).then((selectedTemplate) => {
+                    if (selectedTemplate) {
+                        yamlFilePath = path.join(settingsTemplateFolderPath, `${selectedTemplate}.yaml`);
+                    }
+                });
+            }
+            else {
+                yamlFilePath = await vscode.window.showInputBox({ prompt: 'Percorso del template(yaml):', value: activeFolder });
+            }
             if (!yamlFilePath)
                 return;
             generateTemplateFromYaml(yamlFilePath, outputPath);
@@ -4160,6 +4173,27 @@ function activate(context) {
         }
     });
     context.subscriptions.push(defaultTemplateDisposable);
+    let templatePathConfigurationDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
+        if (event.affectsConfiguration('templateBuilder.templateFolderPath')) {
+        }
+    });
+    context.subscriptions.push(templatePathConfigurationDisposable);
+    // let exampleTemplateFileDisposable = vscode.commands.registerCommand('extension.generateExampleTemplateFile', async (uri: vscode.Uri) => {
+    // 	try {
+    // 		var activeFolder;
+    // 	var outputPath;
+    // 	if(!uri) {
+    // 	 	activeFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
+    // 		outputPath = await vscode.window.showInputBox({ prompt: 'Destinazione cartelle generate:', value: activeFolder });
+    // 	} else {
+    // 		outputPath = uri.fsPath;
+    // 	}
+    // 	if (!outputPath) return;
+    // 	  generateExampleTemplateFile(context, outputPath);
+    // 	} catch (error) {
+    // 	  vscode.window.showErrorMessage(`Failed to generate default template: ${error}`);
+    // 	}
+    // });
 }
 exports.activate = activate;
 function generateTemplateFromYaml(yamlFilePath, outputPath) {
@@ -4192,7 +4226,7 @@ function generateFromYamlData(yamlData, currentPath) {
     }
 }
 function generateDefaultTemplate(context, outputPath) {
-    const templateList = getTemplateList(context);
+    const templateList = getTemplateList(context, getTemplatesFolderPath(context));
     vscode.window.showQuickPick(templateList, { placeHolder: 'Select a template' }).then((selectedTemplate) => {
         if (selectedTemplate) {
             const yamlFilePath = path.join(__dirname, '..', 'src/templates', `${selectedTemplate}.yaml`);
@@ -4201,8 +4235,7 @@ function generateDefaultTemplate(context, outputPath) {
     });
     vscode.window.showInformationMessage('Default template generated successfully!');
 }
-function getTemplateList(context) {
-    const templateDir = getTemplatesFolderPath(context);
+function getTemplateList(context, templateDir) {
     const templateFiles = fs.readdirSync(templateDir);
     return templateFiles.map((file) => path.parse(file).name);
 }

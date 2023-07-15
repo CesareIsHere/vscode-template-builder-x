@@ -35,6 +35,15 @@
 
         }
       ]
+    },
+    "configuration": {
+      "title": "Imposta il percorso della cartella dei template",
+      "properties": {
+        "templateBuilder.templateFolderPath": {
+          "type": "string",
+          "default": ""
+        }
+      }
     }
   },
   "scripts": {
