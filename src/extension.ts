@@ -105,25 +105,54 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(templatePathConfigurationDisposable);
 
-  // let exampleTemplateFileDisposable = vscode.commands.registerCommand('extension.generateExampleTemplateFile', async (uri: vscode.Uri) => {
-  // 	try {
-  // 		var activeFolder;
-  // 	var outputPath;
-  // 	if(!uri) {
-  // 	 	activeFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
-  // 		outputPath = await vscode.window.showInputBox({ prompt: 'Destinazione cartelle generate:', value: activeFolder });
-  // 	} else {
-  // 		outputPath = uri.fsPath;
-  // 	}
+  // Create a command that generate a folder with three files: x (folder) -> x.api.ts, x.constants.ts, x.data.ts, x.service.ts, x.router.ts . The files are empty. Get in input the name (x).
+  let generateFolderDisposable = vscode.commands.registerCommand(
+    "extension.generateApiFolder",
+    async (uri: vscode.Uri) => {
+      try {
+        var activeFolder;
+        var outputPath;
+        if (!uri) {
+          activeFolder = vscode.workspace.workspaceFolders
+            ? vscode.workspace.workspaceFolders[0].uri.fsPath
+            : "";
+          outputPath = await vscode.window.showInputBox({
+            prompt: "Destinazione cartelle generate:",
+            value: activeFolder,
+          });
+        } else {
+          outputPath = uri.fsPath;
+        }
 
-  // 	if (!outputPath) return;
+        if (!outputPath) return;
 
-  // 	  generateExampleTemplateFile(context, outputPath);
-  // 	} catch (error) {
-  // 	  vscode.window.showErrorMessage(`Failed to generate default template: ${error}`);
-  // 	}
+        var folderName = await vscode.window.showInputBox({
+          prompt: "Nome cartella:",
+        });
 
-  // });
+        if (!folderName) return;
+
+        var folderPath = path.join(outputPath, folderName);
+        fs.mkdirSync(folderPath, { recursive: true });
+
+        var files = [
+          { name: `${folderName}.api.ts`, content: "" },
+          { name: `${folderName}.constants.ts`, content: "" },
+          { name: `${folderName}.data.ts`, content: "" },
+          { name: `${folderName}.service.ts`, content: "" },
+          { name: `${folderName}.router.ts`, content: "" },
+        ];
+
+        files.forEach((file) => {
+          fs.writeFileSync(path.join(folderPath, file.name), file.content);
+        });
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to generate folder: ${error}`);
+      }
+    }
+  );
+
+  context.subscriptions.push(generateFolderDisposable);
 }
 
 function generateTemplateFromYaml(yamlFilePath: string, outputPath: string) {
