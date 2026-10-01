@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
           : "";
         if (!uri) {
           outputPath = await vscode.window.showInputBox({
-            prompt: "Destinazione cartelle generate:",
+            prompt: "Destination folder:",
             value: activeFolder,
           });
         } else {
@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         var yamlFilePath;
 
-        // Se è stato impostato un percorso per i template yaml, lo utilizzo
+        // Use the configured template folder, if any
         var settingsTemplateFolderPath = vscode.workspace
           .getConfiguration("templateBuilder")
           .get<string>("templateFolderPath");
@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
 
           await vscode.window
             .showQuickPick(templateList, {
-              placeHolder: "Seleziona un template",
+              placeHolder: "Select a template",
             })
             .then((selectedTemplate) => {
               if (selectedTemplate) {
@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
         } else {
           yamlFilePath = await vscode.window.showInputBox({
-            prompt: "Percorso del template(yaml):",
+            prompt: "Template file path (.yaml):",
             value: activeFolder,
           });
         }
@@ -77,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
             ? vscode.workspace.workspaceFolders[0].uri.fsPath
             : "";
           outputPath = await vscode.window.showInputBox({
-            prompt: "Destinazione cartelle generate:",
+            prompt: "Destination folder:",
             value: activeFolder,
           });
         } else {
@@ -117,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
             ? vscode.workspace.workspaceFolders[0].uri.fsPath
             : "";
           outputPath = await vscode.window.showInputBox({
-            prompt: "Destinazione cartelle generate:",
+            prompt: "Destination folder:",
             value: activeFolder,
           });
         } else {
@@ -127,7 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (!outputPath) return;
 
         var folderName = await vscode.window.showInputBox({
-          prompt: "Nome cartella:",
+          prompt: "Folder name:",
         });
 
         if (!folderName) return;
@@ -191,27 +191,23 @@ function generateDefaultTemplate(
   context: vscode.ExtensionContext,
   outputPath: string
 ) {
-  const templateList = getTemplateList(
-    context,
-    getTemplatesFolderPath(context)
-  );
+  const templatesFolderPath = getTemplatesFolderPath(context);
+  const templateList = getTemplateList(context, templatesFolderPath);
 
   vscode.window
     .showQuickPick(templateList, { placeHolder: "Select a template" })
     .then((selectedTemplate) => {
       if (selectedTemplate) {
         const yamlFilePath = path.join(
-          __dirname,
-          "..",
-          "src/templates",
+          templatesFolderPath,
           `${selectedTemplate}.yaml`
         );
         generateTemplateFromYaml(yamlFilePath, outputPath);
+        vscode.window.showInformationMessage(
+          "Default template generated successfully!"
+        );
       }
     });
-  vscode.window.showInformationMessage(
-    "Default template generated successfully!"
-  );
 }
 
 function getTemplateList(
@@ -223,6 +219,6 @@ function getTemplateList(
 }
 
 function getTemplatesFolderPath(context: vscode.ExtensionContext): string {
-  const templatesFolderPath = path.join(context.extensionPath, "src/templates");
+  const templatesFolderPath = path.join(context.extensionPath, "templates");
   return vscode.Uri.file(templatesFolderPath).fsPath;
 }

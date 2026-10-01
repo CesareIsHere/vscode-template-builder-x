@@ -44,11 +44,12 @@
       ]
     },
     "configuration": {
-      "title": "Imposta il percorso della cartella dei template",
+      "title": "Template Builder X",
       "properties": {
         "templateBuilder.templateFolderPath": {
           "type": "string",
-          "default": ""
+          "default": "",
+          "description": "Folder containing your custom .yaml templates. Leave empty to be prompted for a template file path."
         }
       }
     }
@@ -62,10 +63,7 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "vscode:prepublish": "npm run esbuild-base -- --minify",
-    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-    "esbuild": "npm run esbuild-base -- --sourcemap",
-    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "vscode:prepublish": "npm run package",
     "test-compile": "tsc -p ./"
   },
   "devDependencies": {
@@ -77,7 +75,6 @@
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
     "@vscode/test-electron": "^2.3.2",
-    "esbuild": "^0.19.2",
     "eslint": "^8.41.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
@@ -90,5 +87,10 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "vsce": "^2.15.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CesareIsHere/vscode-template-builder-x"
   }
 }

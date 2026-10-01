@@ -1,0 +1,52 @@
+## Minimal TypeScript library
+
+- name: my-library
+  type: directory
+  children:
+    - name: src
+      type: directory
+      children:
+        - name: index.ts
+          type: file
+          content: |
+            export function hello(name: string): string {
+              return `Hello, ${name}!`;
+            }
+    - name: test
+      type: directory
+      children:
+        - name: index.test.ts
+          type: file
+          content: |
+            import { hello } from "../src/index";
+
+            // Unit tests...
+    - name: package.json
+      type: file
+      content: |
+        {
+          "name": "my-library",
+          "version": "0.1.0",
+          "main": "dist/index.js",
+          "types": "dist/index.d.ts",
+          "scripts": {
+            "build": "tsc"
+          }
+        }
+    - name: tsconfig.json
+      type: file
+      content: |
+        {
+          "compilerOptions": {
+            "target": "ES2020",
+            "module": "commonjs",
+            "declaration": true,
+            "outDir": "dist",
+            "strict": true
+          },
+          "include": ["src"]
+        }
+    - name: README.md
+      type: file
+      content: |
+        # my-library
